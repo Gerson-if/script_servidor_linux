@@ -1,33 +1,40 @@
-# Instalador Automatizado de Ambiente de Desenvolvimento
+# Sistema de Configuração para Ambiente de Desenvolvimento Linux
 
-Este script Bash automatiza o processo de instalação e configuração de um ambiente de desenvolvimento no Ubuntu. Ele instala e configura os seguintes componentes:
+Este projeto oferece um sistema automatizado para a configuração de um ambiente de desenvolvimento em Linux, especificamente projetado para Ubuntu. Utiliza uma interface de menu para simplificar a instalação e configuração de componentes essenciais como Apache, PHP, e MariaDB, além de facilitar a manutenção básica do sistema.
 
-- Apache
-- MySQL
-- PHP
-- PHPMyAdmin
-- Adminer
-- SSH
-- FTP
+## Componentes Instalados
+
+- **Apache**: Servidor web robusto para hospedagem de páginas.
+- **PHP**: Linguagem de script do lado do servidor, incluindo várias extensões como `php-mysql`, `php-intl`, e outras.
+- **MariaDB**: Sistema de gerenciamento de banco de dados, uma alternativa ao MySQL.
+- **Adminer**: Ferramenta de administração de banco de dados em PHP.
 
 ## Requisitos
 
-- Ubuntu (testado na versão 18.04 LTS)
-- Permissões de superusuário (ou acesso ao sudo)
+- Ubuntu (testado na versão 18.04 LTS ou superior)
+- Permissões de superusuário (sudo)
 
 ## Uso
 
-1. Faça o download do script `install.sh`.
-2. Torne-o executável com o comando: `chmod +x install.sh`.
-3. Execute o script com permissões de superusuário: `sudo ./install.sh`.
+1. Faça o download do script `menu.sh`.
+2. Torne-o executável com o comando: `chmod +x menu.sh`.
+3. Execute o script com permissões de superusuário: `sudo ./menu.sh`.
 4. Siga as instruções apresentadas no menu interativo.
 
-**Nota:** Certifique-se de ter a senha do banco de dados em mãos durante a execução do script. As credenciais padrão são:
-- Usuário: admin
-- Senha: admin_123
+**Nota:** Durante a instalação e configuração, siga as instruções cuidadosamente, especialmente ao configurar o MariaDB, onde você será guiado através de um script de segurança para definir as configurações iniciais.
 
-Após a instalação, recomendamos fortemente que você altere essas credenciais por motivos de segurança.
+## Opções do Menu
+
+- **Executar script de instalação e configuração**: Inicializa o script `linux_config.sh` para instalação e configuração dos componentes.
+- **Listar arquivos no diretório atual**: Mostra os arquivos presentes no diretório atual.
+- **Mostrar o uso do disco**: Informa a utilização atual do espaço em disco.
+- **Configurar painel admin do banco de dados**: Configura o acesso ao Adminer movendo `admin.php` para `/var/www/html/` e ajustando suas permissões.
+- **Sair**: Termina a execução do menu.
 
 ## Licença
 
-Este script é distribuído sob a Licença MIT. Consulte o arquivo [LICENSE](LICENSE) para obter mais detalhes.
+Este projeto é distribuído sob a Licença MIT. Para mais detalhes, veja o arquivo [LICENSE](LICENSE).
+
+## Segurança
+
+As configurações iniciais usam credenciais padrão, que devem ser alteradas para garantir a segurança do ambiente. É recomendado não utilizar permissões `777` em ambientes de produção para arquivos críticos.
