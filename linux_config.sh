@@ -13,7 +13,7 @@ sudo rm -rf /etc/mysql /var/lib/mysql /etc/my.cnf /etc/mysql*conf.d /var/log/mys
 sudo apt autoremove -y
 
 # Instalar Apache e PHP com extensões necessárias
-sudo apt install -y apache2 php libapache2-mod-php php-mysql php-intl php-ldap php-apcu php-xmlrpc php-mbstring php-curl php-gd php-simplexml php-zip php-bz2 php-sodium
+sudo apt install -y apache2 php libapache2-mod-php php-mysql php-intl php-ldap php-apcu php-xmlrpc php-mbstring php-curl php-gd php-simplexml php-zip php-bz2 php-xml php-pear
 
 # Verificar se o Apache e o PHP foram instalados corretamente
 if ! command -v apache2 &> /dev/null || ! command -v php &> /dev/null; then
