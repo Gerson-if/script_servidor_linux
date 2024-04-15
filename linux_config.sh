@@ -43,13 +43,16 @@ echo "Você será guiado pelo script de segurança do MariaDB. Escolha 'n' para 
 sleep 3
 
 # Executar o script de segurança do MariaDB
-sudo mysql_secure_installation
+#sudo mysql_secure_installation
 
 # Conceder todos os privilégios ao usuário root
 echo "Digite a senha de root do MariaDB para conceder os privilégios:"
 read -s db_password
 echo "Concedendo privilégios..."
 sudo mysql -u root -p"$db_password" -e "GRANT ALL PRIVILEGES ON *.* TO 'root'@'localhost' IDENTIFIED BY '$db_password' WITH GRANT OPTION; FLUSH PRIVILEGES;"
+
+#configura permissões 
+chmdo 777 -R /var/www/html
 
 # Verificar extensões PHP habilitadas
 echo "Extensões PHP habilitadas:"
