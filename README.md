@@ -21,7 +21,7 @@ Este projeto oferece um sistema automatizado para a configuração de um ambient
 3. Execute o script com permissões de superusuário: `sudo ./menu.sh`.
 4. Siga as instruções apresentadas no menu interativo.
 
-**Nota:** Durante a instalação e configuração, siga as instruções cuidadosamente, especialmente ao configurar o MariaDB, onde você será guiado através de um script de segurança para definir as configurações iniciais.
+**Nota:** Durante a instalação e configuração, siga as instruções cuidadosamente, especialmente ao configurar o MariaDB, onde você será guiado através de um script, atenção o script ao ser executado a opçao de instalação e e configuração do apache e banco de dados ira remover todas as configurações e instalações anteriores.
 
 ## Opções do Menu
 
