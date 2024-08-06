@@ -54,7 +54,7 @@ Este projeto oferece um sistema automatizado para a configuração de um ambient
 
 ## Licença
 
-Este projeto é distribuído sob a Licença MIT. Para mais detalhes, veja o arquivo `LICENSE`.
+Este projeto é distribuído sob a Licença MIT. Para mais detalhes, veja o arquivo [LICENSE](LICENSE).
 
 ## Segurança
 
