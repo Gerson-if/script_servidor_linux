@@ -1,4 +1,4 @@
-# Sistema de Configuração para Ambiente de Desenvolvimento Linux - Versão 1.03
+# Sistema de Configuração para Ambiente de Desenvolvimento Linux - Versão 1.0.3
 
 Este projeto oferece um sistema automatizado para a configuração de um ambiente de desenvolvimento em Linux, especificamente projetado para Ubuntu. Utiliza uma interface de menu para simplificar a instalação e configuração de componentes essenciais como Apache, PHP e MariaDB, além de facilitar a manutenção básica do sistema.
 
