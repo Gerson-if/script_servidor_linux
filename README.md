@@ -1,6 +1,6 @@
-# Sistema de Configuração para Ambiente de Desenvolvimento Linux
+# Sistema de Configuração para Ambiente de Desenvolvimento Linux - Versão 1.03
 
-Este projeto oferece um sistema automatizado para a configuração de um ambiente de desenvolvimento em Linux, especificamente projetado para Ubuntu. Utiliza uma interface de menu para simplificar a instalação e configuração de componentes essenciais como Apache, PHP, e MariaDB, além de facilitar a manutenção básica do sistema.
+Este projeto oferece um sistema automatizado para a configuração de um ambiente de desenvolvimento em Linux, especificamente projetado para Ubuntu. Utiliza uma interface de menu para simplificar a instalação e configuração de componentes essenciais como Apache, PHP e MariaDB, além de facilitar a manutenção básica do sistema.
 
 ## Componentes Instalados
 
@@ -11,17 +11,34 @@ Este projeto oferece um sistema automatizado para a configuração de um ambient
 
 ## Requisitos
 
-- Ubuntu (testado na versão 18.04 LTS ou superior)
-- Permissões de superusuário (sudo)
+- **Ubuntu** (testado na versão 18.04 LTS ou superior)
+- **Permissões de superusuário** (`sudo`)
 
 ## Uso
 
-1. Faça o download do script `menu.sh`.
-2. Torne-o executável com o comando: `chmod +x menu.sh`.
-3. Execute o script com permissões de superusuário: `sudo ./menu.sh`.
-4. Siga as instruções apresentadas no menu interativo.
+1. **Faça o download do pacote do script**:  
+   Baixe o arquivo compactado script_servidor_linux-main.zip do seguinte link: [Download do Pacote](https://github.com/Gerson-if/script_servidor_linux/archive/refs/heads/main.zip).
 
-**Nota:** Durante a instalação e configuração, siga as instruções cuidadosamente, especialmente ao configurar o MariaDB, onde você será guiado através de um script de segurança para definir as configurações iniciais.
+2. **Instale o pacote `unzip`**: Caso ainda não esteja instalado, instale o `unzip` com o comando:
+
+   sudo apt update
+   sudo apt install unzip
+
+3. Descompacte o pacote: Extraia o conteúdo do arquivo .zip com o comando:
+
+    unzip script_servidor_linux-main.zip
+
+4. Dê permissões ao script: Navegue até o diretório extraído e torne o script menu.sh executável com permissões recursivas usando o comando:
+
+    chmod 777 -R script_servidor_linux-main
+
+5. Execute o script: Com permissões de superusuário, execute o script com o comando:
+
+    sudo ./script_servidor_linux-main/menu.sh
+    
+6. Siga as instruções: Siga as orientações apresentadas no menu interativo para completar a instalação e configuração.
+
+> **Nota:** Durante a instalação e configuração, siga as instruções cuidadosamente, especialmente ao configurar o MariaDB, onde você será guiado através de um script de segurança para definir as configurações iniciais.
 
 ## Opções do Menu
 
@@ -29,11 +46,13 @@ Este projeto oferece um sistema automatizado para a configuração de um ambient
 - **Listar arquivos no diretório atual**: Mostra os arquivos presentes no diretório atual.
 - **Mostrar o uso do disco**: Informa a utilização atual do espaço em disco.
 - **Configurar painel admin do banco de dados**: Configura o acesso ao Adminer movendo `admin.php` para `/var/www/html/` e ajustando suas permissões.
+- **Instalar e configurar o servidor DNS**: Inicializa o script `dns_install.sh` para instalação e configuração do servidor DNS.
+- **Mudar e configurar versão do PHP**: Inicializa o script `config_php.sh` para alterar e configurar a versão do PHP.
 - **Sair**: Termina a execução do menu.
 
 ## Licença
 
-Este projeto é distribuído sob a Licença MIT. Para mais detalhes, veja o arquivo [LICENSE](LICENSE).
+Este projeto é distribuído sob a Licença MIT. Para mais detalhes, veja o arquivo `LICENSE`.
 
 ## Segurança
 

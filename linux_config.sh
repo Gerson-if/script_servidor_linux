@@ -9,6 +9,15 @@ sudo apt purge -y mariadb-server* mariadb-client* mysql* libmysql*
 # Remover quaisquer arquivos de configuração restantes
 sudo rm -rf /etc/mysql /var/lib/mysql /etc/my.cnf /etc/mysql*conf.d /var/log/mysql*
 
+# remover apache e qualquer configuração 
+sudo apt-get purge apache2 apache2-utils apache2-bin apache2.2-common
+sudo apt-get autoremove
+sudo rm -rf /etc/apache2
+sudo rm -rf /var/www/html
+sudo rm -rf /var/log/apache2
+sudo rm -rf /var/lib/apache2
+sudo apt-get update
+
 # Limpar quaisquer dependências restantes
 sudo apt autoremove -y
 
@@ -38,12 +47,6 @@ sudo apt install -y mariadb-server
 # Reiniciar o serviço MariaDB
 sudo systemctl restart mariadb
 
-# Informar ao usuário sobre a configuração de segurança
-echo "Você será guiado pelo script de segurança do MariaDB. Escolha 'n' para as opções de remoção de acesso remoto root e exclusão de banco de dados de teste para evitar configurações restritivas."
-sleep 3
-
-# Executar o script de segurança do MariaDB
-#sudo mysql_secure_installation
 
 # Conceder todos os privilégios ao usuário root
 echo "Digite a senha de root do MariaDB para conceder os privilégios:"

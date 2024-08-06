@@ -18,9 +18,25 @@ mostrar_menu() {
     echo -e "${YELLOW}2. Listar arquivos no diretorio atual${NC}"
     echo -e "${YELLOW}3. Mostrar o uso do disco${NC}"
     echo -e "${YELLOW}4. Configurar painel admin do banco de dados${NC}"
-    echo -e "${YELLOW}5. Sair${NC}"
+    echo -e "${YELLOW}5. Instalar e configurar o servidor DNS${NC}"
+    echo -e "${YELLOW}6. Mudar e configurar a versão do PHP${NC}"
+    echo -e "${YELLOW}7. Sair${NC}"
     echo -e "${GREEN}==================================================${NC}"
     echo -n "Escolha uma opcao: "
+}
+
+# Função para mudar e configurar a versão do PHP usando o script `config_php.sh`
+configurar_php() {
+    echo -e "${RED}Mudando e configurando a versão do PHP...${NC}"
+    chmod +x config_php.sh
+    sudo ./config_php.sh
+}
+
+# Função para instalar e configurar o servidor DNS usando o script `dns_install.sh`
+instalar_dns() {
+    echo -e "${RED}Instalando e configurando o servidor DNS...${NC}"
+    chmod +x dns_install.sh
+    sudo ./dns_install.sh
 }
 
 # Função para ler a opção escolhida pelo usuário e executar a ação correspondente
@@ -30,24 +46,36 @@ processar_escolha() {
     case $escolha in
         1)
             echo -e "${RED}Executando script de configuração...${NC}"
-            chmod 777 linux_config.sh
+            chmod +x linux_config.sh
             sudo ./linux_config.sh
             ;;
-        2) ls -l;;
-        3) df -h;;
-        4) 
+        2)
+            ls -l
+            ;;
+        3)
+            df -h
+            ;;
+        4)
             echo -e "${RED}Configurando painel admin do banco de dados...${NC}"
             sudo cp admin.php /var/www/html/
             sudo chmod 777 /var/www/html/admin.php
             echo "Painel admin configurado. Acesse usando: http://localhost/admin.php"
-            echo "faca login com seu usuario root e sua senha que voce definiu"
+            echo "Faça login com seu usuário root e sua senha que você definiu"
             sleep 3
             ;;
-        5) 
-            echo "Saindo do programa..." 
+        5)
+            instalar_dns
+            ;;
+        6)
+            configurar_php
+            ;;
+        7)
+            echo "Saindo do programa..."
             exit 0
             ;;
-        *) echo -e "${RED}Opcao invalida! Tente novamente.${NC}";;
+        *)
+            echo -e "${RED}Opção inválida! Tente novamente.${NC}"
+            ;;
     esac
     echo ""
     read -p "Pressione qualquer tecla para continuar..." -n 1 -r
