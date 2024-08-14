@@ -33,6 +33,39 @@ check_os_compatibility() {
     esac
 }
 
+# Função para remover qualquer configuração e instalação anterior
+remove_previous_configurations() {
+    echo "Removendo configurações anteriores do BIND9 e Apache..."
+    
+    # Parando e desativando serviços
+    systemctl stop bind9
+    systemctl disable bind9
+    systemctl stop apache2
+    systemctl disable apache2
+
+    # Removendo pacotes
+    apt-get purge -y bind9 bind9utils bind9-doc apache2 certbot python3-certbot-apache
+
+    # Removendo dependências não utilizadas
+    apt-get autoremove -y
+    apt-get autoclean -y
+
+    # Removendo diretórios de configuração e zonas do BIND9
+    rm -rf /etc/bind
+    rm -rf /var/cache/bind
+    rm -rf /etc/apache2
+    rm -rf /var/www/html
+
+    # Removendo arquivos SSL
+    rm -rf /etc/ssl/*
+
+    # Limpando logs antigos
+    rm -rf /var/log/apache2/*
+    rm -rf /var/log/bind/*
+
+    echo "Configurações anteriores removidas com sucesso."
+}
+
 # Função para instalar pacotes necessários
 install_packages() {
     local packages=("bind9" "bind9utils" "bind9-doc" "apache2" "certbot" "python3-certbot-apache")
@@ -44,16 +77,6 @@ install_packages() {
 # Função para obter o endereço IP do servidor
 get_server_ip() {
     hostname -I | awk '{print $1}'
-}
-
-# Função para obter o gateway padrão
-get_default_gateway() {
-    ip route | grep default | awk '{print $3}'
-}
-
-# Função para obter a máscara de rede
-get_netmask() {
-    ifconfig | grep -w 'inet' | grep -v '127.0.0.1' | awk '{print $4}'
 }
 
 # Função para configurar o BIND9 para um domínio
@@ -213,22 +236,60 @@ configure_domain() {
     configure_ssl $domain_name
 }
 
-# Função para exibir o menu principal
+# Função para adicionar um domínio ao arquivo de configuração
+add_domain() {
+    local domain_name=$1
+    local domain_ip=$2
+    echo "$domain_name $domain_ip" >> domains.txt
+}
+
+# Função para listar domínios configurados
+list_domains() {
+    if [ -f domains.txt ]; then
+        echo "Domínios configurados:"
+        cat domains.txt
+    else
+        echo "Nenhum domínio configurado."
+    fi
+}
+
+# Função principal para o menu
 menu() {
     while true; do
-        echo "Menu de Configuração do Servidor DNS"
-        echo "1. Adicionar novo domínio"
-        echo "2. Sair"
-        read -p "Escolha uma opção: " option
+        echo "Selecione uma opção:"
+        echo "1) Remover todas as configurações e instalações anteriores e instalar novamente"
+        echo "2) Configurar apenas DNS"
+        echo "3) Adicionar novo domínio"
+        echo "4) Listar todos os domínios configurados"
+        echo "5) Sair"
+        read -p "Opção: " option
 
         case $option in
             1)
-                read -p "Digite o nome do domínio (exemplo: meudominio.local): " domain_name
-                local domain_ip=$(get_server_ip)
-                echo "Usando o endereço IP detectado: $domain_ip"
+                remove_previous_configurations
+                install_packages
+                read -p "Digite o nome do domínio: " domain_name
+                read -p "Digite o endereço IP do domínio: " domain_ip
                 configure_domain $domain_name $domain_ip
+                add_domain $domain_name $domain_ip
                 ;;
             2)
+                read -p "Digite o nome do domínio: " domain_name
+                read -p "Digite o endereço IP do domínio: " domain_ip
+                configure_bind $domain_name $domain_ip
+                add_domain $domain_name $domain_ip
+                ;;
+            3)
+                read -p "Digite o nome do domínio: " domain_name
+                read -p "Digite o endereço IP do domínio: " domain_ip
+                configure_domain $domain_name $domain_ip
+                add_domain $domain_name $domain_ip
+                ;;
+            4)
+                list_domains
+                ;;
+            5)
+                echo "Saindo..."
                 exit 0
                 ;;
             *)
@@ -238,8 +299,7 @@ menu() {
     done
 }
 
-# Executa as funções
+# Executa as verificações iniciais e exibe o menu
 check_root
 check_os_compatibility
-install_packages
 menu
