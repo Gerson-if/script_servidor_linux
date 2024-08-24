@@ -76,7 +76,9 @@ install_packages() {
 
 # Função para obter o endereço IP do servidor
 get_server_ip() {
-    hostname -I | awk '{print $1}'
+    local server_ip
+    read -p "Digite o endereço IP do servidor: " server_ip
+    echo "$server_ip"
 }
 
 # Função para configurar o BIND9 para um domínio
@@ -140,7 +142,6 @@ EOL
 # Função para configurar o Apache para um domínio
 configure_apache() {
     local domain_name=$1
-    local domain_ip=$2
 
     echo "Configurando Apache para o domínio $domain_name..."
 
@@ -229,77 +230,68 @@ EOL
 
 # Função para configurar um domínio
 configure_domain() {
-    local domain_name=$1
-    local domain_ip=$2
-    configure_bind $domain_name $domain_ip
-    configure_apache $domain_name $domain_ip
-    configure_ssl $domain_name
+    local domain_name
+    local domain_ip
+
+    read -p "Digite o nome do domínio: " domain_name
+    read -p "Digite o endereço IP do domínio: " domain_ip
+
+    echo "Escolha uma opção:"
+    echo "1. Configurar DNS e Apache"
+    echo "2. Apenas adicionar configuração ao BIND9"
+    echo "3. Apenas adicionar configuração ao Apache"
+    read -p "Escolha uma opção [1/2/3]: " option
+
+    case "$option" in
+        1)
+            configure_bind "$domain_name" "$domain_ip"
+            configure_apache "$domain_name"
+            configure_ssl "$domain_name"
+            ;;
+        2)
+            configure_bind "$domain_name" "$domain_ip"
+            ;;
+        3)
+            configure_apache "$domain_name"
+            configure_ssl "$domain_name"
+            ;;
+        *)
+            echo "Opção inválida."
+            ;;
+    esac
 }
 
-# Função para adicionar um domínio ao arquivo de configuração
-add_domain() {
-    local domain_name=$1
-    local domain_ip=$2
-    echo "$domain_name $domain_ip" >> domains.txt
+# Função para o menu principal
+main_menu() {
+    clear
+    echo "Menu Principal:"
+    echo "1. Instalar o Servidor DNS e Web"
+    echo "2. Adicionar um Domínio ao Servidor DNS"
+    echo "3. Sair"
+
+    read -p "Escolha uma opção [1/2/3]: " choice
+
+    case "$choice" in
+        1)
+            check_root
+            check_os_compatibility
+            remove_previous_configurations
+            install_packages
+            get_server_ip
+            echo "Servidor DNS e Web configurados com sucesso!"
+            ;;
+        2)
+            configure_domain
+            ;;
+        3)
+            exit 0
+            ;;
+        *)
+            echo "Opção inválida. Saindo..."
+            exit 1
+            ;;
+    esac
 }
 
-# Função para listar domínios configurados
-list_domains() {
-    if [ -f domains.txt ]; then
-        echo "Domínios configurados:"
-        cat domains.txt
-    else
-        echo "Nenhum domínio configurado."
-    fi
-}
-
-# Função principal para o menu
-menu() {
-    while true; do
-        echo "Selecione uma opção:"
-        echo "1) Remover todas as configurações e instalações anteriores e instalar novamente"
-        echo "2) Configurar apenas DNS"
-        echo "3) Adicionar novo domínio"
-        echo "4) Listar todos os domínios configurados"
-        echo "5) Sair"
-        read -p "Opção: " option
-
-        case $option in
-            1)
-                remove_previous_configurations
-                install_packages
-                read -p "Digite o nome do domínio: " domain_name
-                read -p "Digite o endereço IP do domínio: " domain_ip
-                configure_domain $domain_name $domain_ip
-                add_domain $domain_name $domain_ip
-                ;;
-            2)
-                read -p "Digite o nome do domínio: " domain_name
-                read -p "Digite o endereço IP do domínio: " domain_ip
-                configure_bind $domain_name $domain_ip
-                add_domain $domain_name $domain_ip
-                ;;
-            3)
-                read -p "Digite o nome do domínio: " domain_name
-                read -p "Digite o endereço IP do domínio: " domain_ip
-                configure_domain $domain_name $domain_ip
-                add_domain $domain_name $domain_ip
-                ;;
-            4)
-                list_domains
-                ;;
-            5)
-                echo "Saindo..."
-                exit 0
-                ;;
-            *)
-                echo "Opção inválida. Por favor, tente novamente."
-                ;;
-        esac
-    done
-}
-
-# Executa as verificações iniciais e exibe o menu
-check_root
-check_os_compatibility
-menu
+# Executa o menu principal
+main_menu
