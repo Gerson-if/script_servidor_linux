@@ -12,7 +12,25 @@ function show_header() {
 function install_docker() {
     show_header
     echo "Instalando o Docker..."
-    
+    sudo apt-get update
+    sudo apt-get upgrade -y
+    sudo apt-get purge -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    sudo apt-get autoremove -y
+    # Remover chave e repositório antigos, se existirem
+    sudo rm -f /usr/share/keyrings/docker-archive-keyring.gpg
+    sudo rm -f /etc/apt/sources.list.d/docker.list
+
+    # Adicionar chave GPG oficial do Docker
+    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+    # Adicionar repositório do Docker
+    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+    # Atualizar o repositório
+    sudo apt-get update
+    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+    sudo systemctl status docker
+
     # Remover versões anteriores (caso existam)
     sudo apt-get remove -y docker docker-engine docker.io containerd runc
     
