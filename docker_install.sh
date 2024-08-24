@@ -91,6 +91,34 @@ function restore_docker() {
     read -p "Pressione qualquer tecla para continuar..."
 }
 
+# Função para iniciar um container Docker
+function start_container() {
+    show_header
+    echo "Iniciar container Docker"
+    read -p "Digite o nome ou ID do container que deseja iniciar: " container_name
+    sudo docker start $container_name
+    echo "Container $container_name iniciado com sucesso!"
+    read -p "Pressione qualquer tecla para continuar..."
+}
+
+# Função para parar um container Docker
+function stop_container() {
+    show_header
+    echo "Parar container Docker"
+    read -p "Digite o nome ou ID do container que deseja parar: " container_name
+    sudo docker stop $container_name
+    echo "Container $container_name parado com sucesso!"
+    read -p "Pressione qualquer tecla para continuar..."
+}
+
+# Função para visualizar containers Docker em execução
+function list_containers() {
+    show_header
+    echo "Containers Docker em execução:"
+    sudo docker ps
+    read -p "Pressione qualquer tecla para continuar..."
+}
+
 # Função para verificar e corrigir incompatibilidades
 function fix_incompatibility() {
     show_header
@@ -112,6 +140,21 @@ function fix_incompatibility() {
     read -p "Pressione qualquer tecla para continuar..."
 }
 
+# Função para chamar o script de configuração de serviços
+function run_service_configurator() {
+    show_header
+    echo "Executando o configurador de serviços..."
+
+    # Verificar se o script de configuração de serviços existe e é executável
+    if [ -x "./configurador_servicos.sh" ]; then
+        ./configurador_servicos.sh
+    else
+        echo "O script de configuração de serviços não foi encontrado ou não é executável."
+    fi
+
+    read -p "Pressione qualquer tecla para continuar..."
+}
+
 # Função para exibir o menu
 function show_menu() {
     while true; do
@@ -120,18 +163,26 @@ function show_menu() {
         echo "2. Remover Docker"
         echo "3. Backup de Container Docker"
         echo "4. Restaurar Container Docker"
-        echo "5. Corrigir Incompatibilidades"
-        echo "6. Sair"
+        echo "5. Iniciar Container Docker"
+        echo "6. Parar Container Docker"
+        echo "7. Visualizar Containers em Execução"
+        echo "8. Corrigir Incompatibilidades"
+        echo "9. Configurador de Serviços"
+        echo "10. Sair"
         echo
-        read -p "Escolha uma opção [1-6]: " choice
+        read -p "Escolha uma opção [1-10]: " choice
 
         case $choice in
             1) install_docker ;;
             2) remove_docker ;;
             3) backup_docker ;;
             4) restore_docker ;;
-            5) fix_incompatibility ;;
-            6) exit ;;
+            5) start_container ;;
+            6) stop_container ;;
+            7) list_containers ;;
+            8) fix_incompatibility ;;
+            9) run_service_configurator ;;
+            10) exit ;;
             *) echo "Opção inválida. Por favor, tente novamente." ;;
         esac
     done
