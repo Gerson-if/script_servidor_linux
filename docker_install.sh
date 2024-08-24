@@ -11,50 +11,87 @@ function show_header() {
 # Função para instalar o Docker
 function install_docker() {
     show_header
-    echo "Iniciando a instalação do Docker..."
+    echo "Iniciando a instalação do Docker e Docker Compose..."
 
-    # Função para verificar se o Docker foi instalado com sucesso
+    # Função para verificar se o Docker está instalado
     function check_docker_installation() {
         if command -v docker &> /dev/null; then
             echo "Docker já está instalado."
-            exit 0
+            return 0
+        else
+            return 1
         fi
     }
 
-    # Verificar se o Docker já está instalado
-    check_docker_installation
+    # Função para verificar se o Docker Compose está instalado
+    function check_docker_compose_installation() {
+        if command -v docker-compose &> /dev/null; then
+            echo "Docker Compose já está instalado."
+            return 0
+        else
+            return 1
+        fi
+    }
 
-    # Remover versões anteriores (caso existam)
-    echo "Removendo versões anteriores do Docker (se houver)..."
-    sudo apt-get remove -y docker docker-engine docker.io containerd runc
-
-    # Instalar dependências
-    echo "Instalando dependências necessárias..."
-    sudo apt-get update
-    sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
-
-    # Adicionar chave GPG oficial do Docker
-    echo "Adicionando chave GPG do Docker..."
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
-
-    # Adicionar repositório do Docker
-    echo "Adicionando repositório do Docker..."
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-    # Atualizar e instalar o Docker
-    echo "Atualizando pacotes e instalando o Docker..."
-    sudo apt-get update
-    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-
-    # Verificar se a instalação foi bem-sucedida
-    if command -v docker &> /dev/null; then
-        echo "Docker instalado com sucesso!"
+    # Verificar se o Docker está instalado
+    if check_docker_installation; then
+        echo "Docker já está instalado."
     else
-        echo "Falha na instalação do Docker. Verifique as mensagens de erro acima para mais detalhes."
-        exit 1
+        echo "Docker não encontrado. Instalando o Docker..."
+
+        # Remover versões anteriores (caso existam)
+        echo "Removendo versões anteriores do Docker (se houver)..."
+        sudo apt-get remove -y docker docker-engine docker.io containerd runc
+
+        # Instalar dependências
+        echo "Instalando dependências necessárias..."
+        sudo apt-get update
+        sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
+
+        # Adicionar chave GPG oficial do Docker
+        echo "Adicionando chave GPG do Docker..."
+        curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+
+        # Adicionar repositório do Docker
+        echo "Adicionando repositório do Docker..."
+        echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+
+        # Atualizar e instalar o Docker
+        echo "Atualizando pacotes e instalando o Docker..."
+        sudo apt-get update
+        sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+
+        # Verificar se a instalação do Docker foi bem-sucedida
+        if check_docker_installation; then
+            echo "Docker instalado com sucesso!"
+        else
+            echo "Falha na instalação do Docker. Verifique as mensagens de erro acima para mais detalhes."
+            exit 1
+        fi
     fi
 
-    # Informar ao usuário que a instalação foi concluída
+    # Verificar se o Docker Compose está instalado
+    if check_docker_compose_installation; then
+        echo "Docker Compose já está instalado."
+    else
+        echo "Docker Compose não encontrado. Instalando o Docker Compose..."
+
+        # Baixar e instalar o Docker Compose
+        echo "Baixando e instalando o Docker Compose..."
+        COMPOSE_VERSION=$(curl -fsSL https://github.com/docker/compose/releases/latest | grep -oP '(?<=tag\/v)[^"]*')
+        sudo curl -L "https://github.com/docker/compose/releases/download/v$COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        sudo chmod +x /usr/local/bin/docker-compose
+
+        # Verificar se a instalação do Docker Compose foi bem-sucedida
+        if check_docker_compose_installation; then
+            echo "Docker Compose instalado com sucesso!"
+        else
+            echo "Falha na instalação do Docker Compose. Verifique as mensagens de erro acima para mais detalhes."
+            exit 1
+        fi
+    fi
+
+    echo "Instalação concluída!"
     read -p "Pressione qualquer tecla para continuar..."
 }
 
