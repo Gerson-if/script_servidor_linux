@@ -11,46 +11,53 @@ function show_header() {
 # Função para instalar o Docker
 function install_docker() {
     show_header
-    echo "Instalando o Docker..."
-    sudo apt-get update
-    sudo apt-get upgrade -y
-    sudo apt-get purge -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-    sudo apt-get autoremove -y
-    # Remover chave e repositório antigos, se existirem
-    sudo rm -f /usr/share/keyrings/docker-archive-keyring.gpg
-    sudo rm -f /etc/apt/sources.list.d/docker.list
+    echo "Iniciando a instalação do Docker..."
 
-    # Adicionar chave GPG oficial do Docker
-    curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
+    # Função para verificar se o Docker foi instalado com sucesso
+    function check_docker_installation() {
+        if command -v docker &> /dev/null; then
+            echo "Docker já está instalado."
+            exit 0
+        fi
+    }
 
-    # Adicionar repositório do Docker
-    echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
-
-    # Atualizar o repositório
-    sudo apt-get update
-    sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
-    sudo systemctl status docker
+    # Verificar se o Docker já está instalado
+    check_docker_installation
 
     # Remover versões anteriores (caso existam)
+    echo "Removendo versões anteriores do Docker (se houver)..."
     sudo apt-get remove -y docker docker-engine docker.io containerd runc
-    
+
     # Instalar dependências
+    echo "Instalando dependências necessárias..."
     sudo apt-get update
     sudo apt-get install -y apt-transport-https ca-certificates curl gnupg lsb-release
 
     # Adicionar chave GPG oficial do Docker
+    echo "Adicionando chave GPG do Docker..."
     curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /usr/share/keyrings/docker-archive-keyring.gpg
 
     # Adicionar repositório do Docker
+    echo "Adicionando repositório do Docker..."
     echo "deb [arch=amd64 signed-by=/usr/share/keyrings/docker-archive-keyring.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
 
     # Atualizar e instalar o Docker
+    echo "Atualizando pacotes e instalando o Docker..."
     sudo apt-get update
     sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
 
-    echo "Docker instalado com sucesso!"
+    # Verificar se a instalação foi bem-sucedida
+    if command -v docker &> /dev/null; then
+        echo "Docker instalado com sucesso!"
+    else
+        echo "Falha na instalação do Docker. Verifique as mensagens de erro acima para mais detalhes."
+        exit 1
+    fi
+
+    # Informar ao usuário que a instalação foi concluída
     read -p "Pressione qualquer tecla para continuar..."
 }
+
 
 # Função para remover o Docker
 function remove_docker() {

@@ -23,34 +23,8 @@ function install_git {
     sudo apt install -y git || error_exit "Falha na instalação do Git."
 }
 
-# Função para limpar o ambiente de configuração do Docker
-function clean_docker_environment {
-    echo "A limpeza a seguir afetará diretamente as configurações do Docker e os serviços em execução."
-    echo "Você está prestes a remover:"
-    echo "- Containers e volumes do Docker associados ao repositório ONLYOFFICE e Nextcloud"
-    echo "- O diretório do repositório 'docker-onlyoffice-nextcloud'"
-    echo ""
-    echo "Essa ação não afetará o sistema operacional, apenas as configurações e dados relacionados aos serviços Docker."
-    echo ""
-    read -p "Você tem certeza que deseja continuar com a limpeza? (s/n): " confirmation
-    if [[ "$confirmation" =~ ^[Ss]$ ]]; then
-        echo "Limpando o ambiente do Docker..."
-        # Parar e remover containers e volumes do Docker
-        sudo docker-compose down -v || error_exit "Falha ao parar e remover os containers existentes."
-        # Remover o diretório do repositório
-        if [ -d "docker-onlyoffice-nextcloud" ]; then
-            sudo rm -rf docker-onlyoffice-nextcloud || error_exit "Falha ao remover o diretório do repositório."
-        fi
-        echo "Ambiente do Docker limpo com sucesso."
-    else
-        echo "Limpeza cancelada."
-    fi
-}
-
 # Função para baixar e configurar o repositório ONLYOFFICE e Nextcloud
 function setup_onlyoffice_nextcloud {
-    clean_docker_environment
-
     echo "Baixando o container..."
     git clone https://github.com/ONLYOFFICE/docker-onlyoffice-nextcloud || error_exit "Falha ao clonar o repositório."
 
