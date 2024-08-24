@@ -1,0 +1,38 @@
+
+# Instruções de Instalação do MariaDB com Docker
+
+## Passos para instalação:
+
+1. **Extraia o arquivo `MariaDB-Docker.zip`**:
+   - Após baixar o arquivo, descompacte-o para acessar o conteúdo.
+
+2. **Navegue até o diretório descompactado**:
+   - Acesse o diretório que contém os arquivos:
+     ```bash
+     cd MariaDB-Docker
+     ```
+
+3. **Construir a imagem Docker**:
+   - Se você estiver utilizando o `docker-compose`, basta executar:
+     ```bash
+     docker-compose up -d
+     ```
+   - Isso irá construir a imagem e iniciar o container do MariaDB.
+
+4. **Verificando o status do container**:
+   - Você pode verificar se o container está rodando com:
+     ```bash
+     docker ps
+     ```
+
+5. **Acessar o MariaDB**:
+   - Agora o MariaDB estará acessível na porta `3306` com o usuário `root` e a senha `root`.
+
+## Estrutura dos arquivos:
+
+- **Dockerfile**: Define a imagem do MariaDB e a configuração de permissões.
+- **my.cnf**: Arquivo de configuração para permitir conexões remotas.
+- **docker-compose.yml**: Facilita o gerenciamento do container.
+
+## Conclusão:
+O MariaDB agora está configurado e acessível para uso local e remoto na sua LAN. Caso precise de mais personalizações, basta ajustar o `Dockerfile` ou o `my.cnf`.

@@ -23,21 +23,25 @@ function install_git {
     sudo apt install -y git || error_exit "Falha na instalação do Git."
 }
 
-# Função para baixar e configurar o repositório ONLYOFFICE e Nextcloud
-function setup_onlyoffice_nextcloud {
-    echo "Baixando o container..."
-    git clone https://github.com/ONLYOFFICE/docker-onlyoffice-nextcloud || error_exit "Falha ao clonar o repositório."
+# Função para configurar o ONLYOFFICE após o Nextcloud
+function setup_onlyoffice {
+    echo "Baixando o container ONLYOFFICE..."
+    git clone https://github.com/ONLYOFFICE/docker-onlyoffice-nextcloud || error_exit "Falha ao clonar o repositório do ONLYOFFICE."
 
-    echo "Entrando no diretório..."
-    cd docker-onlyoffice-nextcloud/ || error_exit "Falha ao entrar no diretório do repositório."
+    echo "Entrando no diretório do ONLYOFFICE..."
+    cd docker-onlyoffice-nextcloud/ || error_exit "Falha ao entrar no diretório do repositório do ONLYOFFICE."
 
     echo "Verificando Docker e Docker Compose..."
     check_command "docker" "Docker não está instalado. Por favor, instale o Docker para continuar."
     check_command "docker-compose" "Docker Compose não está instalado. Por favor, instale o Docker Compose para continuar."
 
-    echo "Subindo containers e configurando..."
-    sudo docker-compose up -d || error_exit "Falha ao subir os containers."
+    echo "Subindo containers do ONLYOFFICE e Nextcloud..."
+    sudo docker-compose up -d || error_exit "Falha ao subir os containers do ONLYOFFICE e Nextcloud."
+}
 
+# Função para executar o script de integração do ONLYOFFICE com Nextcloud
+function run_onlyoffice_integration_script {
+    echo "Certifique-se de que o Nextcloud está funcionando e que você fez login pelo menos uma vez antes de executar este script."
     echo "Configurando ONLYOFFICE Online..."
     if [ -f "set_configuration.sh" ]; then
         bash set_configuration.sh || error_exit "Falha na configuração do ONLYOFFICE."
@@ -72,9 +76,10 @@ function show_menu {
     echo "============================================="
     echo "1) Atualizar o sistema"
     echo "2) Instalar Git"
-    echo "3) Configurar ONLYOFFICE e Nextcloud"
-    echo "4) Informações sobre Docker e Docker Compose"
-    echo "5) Sair"
+    echo "3) Configurar ONLYOFFICE com NEXTCLOUD"
+    echo "4) Executar script de integração do ONLYOFFICE com Nextcloud (Nextcloud deve estar funcionando e você deve ter feito login pelo menos uma vez)"
+    echo "5) Informações sobre Docker e Docker Compose"
+    echo "6) Sair"
     echo "============================================="
 }
 
@@ -91,12 +96,15 @@ function main {
                 install_git
                 ;;
             3)
-                setup_onlyoffice_nextcloud
+                setup_onlyoffice
                 ;;
             4)
-                show_info
+                run_onlyoffice_integration_script
                 ;;
             5)
+                show_info
+                ;;
+            6)
                 echo "Saindo..."
                 exit 0
                 ;;
