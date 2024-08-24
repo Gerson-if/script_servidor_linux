@@ -20,7 +20,8 @@ mostrar_menu() {
     echo -e "${YELLOW}4. Configurar painel admin do banco de dados${NC}"
     echo -e "${YELLOW}5. Instalar e configurar o servidor DNS${NC}"
     echo -e "${YELLOW}6. Mudar e configurar a versão do PHP${NC}"
-    echo -e "${YELLOW}7. Sair${NC}"
+    echo -e "${YELLOW}7. Executar o script de instalação do Docker${NC}"
+    echo -e "${YELLOW}8. Sair${NC}"
     echo -e "${GREEN}==================================================${NC}"
     echo -n "Escolha uma opcao: "
 }
@@ -37,6 +38,13 @@ instalar_dns() {
     echo -e "${RED}Instalando e configurando o servidor DNS...${NC}"
     chmod +x dns_install.sh
     sudo ./dns_install.sh
+}
+
+# Função para executar o script de instalação do Docker
+executar_docker_install() {
+    echo -e "${RED}Executando script de instalação do Docker...${NC}"
+    chmod +x docker_install.sh
+    sudo ./docker_install.sh
 }
 
 # Função para ler a opção escolhida pelo usuário e executar a ação correspondente
@@ -70,6 +78,9 @@ processar_escolha() {
             configurar_php
             ;;
         7)
+            executar_docker_install
+            ;;
+        8)
             echo "Saindo do programa..."
             exit 0
             ;;
