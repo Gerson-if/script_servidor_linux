@@ -78,8 +78,8 @@ function install_docker() {
 
         # Baixar e instalar o Docker Compose
         echo "Baixando e instalando o Docker Compose..."
-        COMPOSE_VERSION=$(curl -fsSL https://github.com/docker/compose/releases/latest | grep -oP '(?<=tag\/v)[^"]*')
-        sudo curl -L "https://github.com/docker/compose/releases/download/v$COMPOSE_VERSION/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+        COMPOSE_VERSION=$(curl -fsSL https://api.github.com/repos/docker/compose/releases/latest | grep -oP '"tag_name": "\K(.*)(?=")')
+        sudo curl -L "https://github.com/docker/compose/releases/download/${COMPOSE_VERSION}/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
         sudo chmod +x /usr/local/bin/docker-compose
 
         # Verificar se a instalação do Docker Compose foi bem-sucedida
@@ -94,7 +94,6 @@ function install_docker() {
     echo "Instalação concluída!"
     read -p "Pressione qualquer tecla para continuar..."
 }
-
 
 # Função para remover o Docker
 function remove_docker() {
