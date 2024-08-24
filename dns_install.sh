@@ -1,9 +1,9 @@
 #!/bin/bash
 
-# Função para garantir que o script é executado com privilégios de superusuário
+# Função para garantir que o script é executado como root
 check_root() {
     if [ "$EUID" -ne 0 ]; then
-        echo "Por favor, execute o script como root."
+        echo -e "\e[31m[ERRO]\e[0m Por favor, execute o script como root."
         exit 1
     fi
 }
@@ -13,96 +13,56 @@ check_os_compatibility() {
     local os_name=$(lsb_release -is)
     local os_version=$(lsb_release -rs)
     
-    case "$os_name" in
-        "Ubuntu")
-            if [[ "$os_version" != "20.04" && "$os_version" != "22.04" && "$os_version" != "24.04" ]]; then
-                echo "Este script é compatível apenas com Ubuntu 20.04, 22.04 e 24.04."
-                exit 1
-            fi
-            ;;
-        "Debian")
-            if [[ "$os_version" != "10" && "$os_version" != "12" ]]; then
-                echo "Este script é compatível apenas com Debian 10 e 12."
-                exit 1
-            fi
-            ;;
-        *)
-            echo "Distribuição não suportada. Este script é compatível apenas com Ubuntu e Debian."
-            exit 1
-            ;;
-    esac
+    if [[ "$os_name" != "Ubuntu" && "$os_name" != "Debian" ]]; then
+        echo -e "\e[31m[ERRO]\e[0m Distribuição não suportada. Este script é compatível apenas com Ubuntu e Debian."
+        exit 1
+    fi
 }
 
-# Função para remover qualquer configuração e instalação anterior
-remove_previous_configurations() {
-    echo "Removendo configurações anteriores do BIND9 e Apache..."
-    
-    # Parando e desativando serviços
+# Função para remover completamente configurações anteriores do BIND9
+clean_previous_config() {
+    echo -e "\e[32m[INFO]\e[0m Removendo configurações anteriores do BIND9..."
+
+    # Parando o serviço BIND9
     systemctl stop bind9
-    systemctl disable bind9
-    systemctl stop apache2
-    systemctl disable apache2
 
-    # Removendo pacotes
-    apt-get purge -y bind9 bind9utils bind9-doc apache2 certbot python3-certbot-apache
-
-    # Removendo dependências não utilizadas
-    apt-get autoremove -y
-    apt-get autoclean -y
-
-    # Removendo diretórios de configuração e zonas do BIND9
+    # Removendo pacotes e diretórios do BIND9
+    apt-get purge --auto-remove -y bind9 bind9utils bind9-doc
     rm -rf /etc/bind
     rm -rf /var/cache/bind
-    rm -rf /etc/apache2
-    rm -rf /var/www/html
 
-    # Removendo arquivos SSL
-    rm -rf /etc/ssl/*
+    # Limpando qualquer resquício de arquivos de configuração
+    rm -f /etc/default/bind9
+    rm -f /etc/init.d/bind9
 
-    # Limpando logs antigos
-    rm -rf /var/log/apache2/*
-    rm -rf /var/log/bind/*
-
-    echo "Configurações anteriores removidas com sucesso."
+    echo -e "\e[32m[INFO]\e[0m Configurações anteriores removidas com sucesso."
 }
 
 # Função para instalar pacotes necessários
 install_packages() {
-    local packages=("bind9" "bind9utils" "bind9-doc" "apache2" "certbot" "python3-certbot-apache")
-    echo "Instalando pacotes necessários..."
-    apt-get update -y
-    apt-get install -y "${packages[@]}"
+    echo -e "\e[32m[INFO]\e[0m Instalando pacotes necessários..."
+    apt-get update -y && apt-get install -y bind9 bind9utils bind9-doc
+    echo -e "\e[32m[INFO]\e[0m Pacotes instalados com sucesso."
 }
 
-# Função para obter o endereço IP do servidor
-get_server_ip() {
-    local server_ip
-    read -p "Digite o endereço IP do servidor: " server_ip
-    echo "$server_ip"
-}
+# Função para configurar o BIND9 para um domínio local
+configure_bind_local() {
+    local domain_name
+    local domain_ip
 
-# Função para configurar o BIND9 para um domínio
-configure_bind() {
-    local domain_name=$1
-    local domain_ip=$2
+    read -p "Digite o nome do domínio (ex: exemplo.local): " domain_name
+    read -p "Digite o endereço IP para o domínio: " domain_ip
 
-    echo "Configurando BIND9 para o domínio $domain_name com IP $domain_ip..."
+    echo -e "\e[32m[INFO]\e[0m Configurando BIND9 para o domínio $domain_name..."
 
-    # Configurações principais do BIND
-    cat <<EOL >> /etc/bind/named.conf.local
-zone "$domain_name" {
-    type master;
-    file "/etc/bind/zones/db.$domain_name";
-};
-
-zone "$(echo $domain_ip | awk -F. '{print $3"."$2"."$1}').in-addr.arpa" {
-    type master;
-    file "/etc/bind/zones/db.$(echo $domain_ip | awk -F. '{print $3"."$2"."$1}')";
-};
-EOL
-
-    # Diretório de zonas
+    # Criando diretório de zonas
     mkdir -p /etc/bind/zones
+
+    # Configurando o named.conf.local
+    echo "zone \"$domain_name\" {
+    type master;
+    file \"/etc/bind/zones/db.$domain_name\";
+};" >> /etc/bind/named.conf.local
 
     # Arquivo de zona para o domínio
     cat <<EOL > /etc/bind/zones/db.$domain_name
@@ -120,178 +80,100 @@ ns1     IN      A       $domain_ip
 www     IN      A       $domain_ip
 EOL
 
-    # Arquivo de zona para o mapeamento reverso
-    cat <<EOL > /etc/bind/zones/db.$(echo $domain_ip | awk -F. '{print $3"."$2"."$1}')
-\$TTL    604800
-@       IN      SOA     ns1.$domain_name. admin.$domain_name. (
-                         $(date +%Y%m%d%H) ; Serial
-                         604800         ; Refresh
-                          86400         ; Retry
-                        2419200         ; Expire
-                         604800 )       ; Negative Cache TTL
-;
-@       IN      NS      ns1.$domain_name.
-$(echo $domain_ip | awk -F. '{print $4}')    IN      PTR     ns1.$domain_name.
-$(echo $domain_ip | awk -F. '{print $4}')    IN      PTR     www.$domain_name.
-EOL
-
-    # Reinicia o BIND9 para aplicar as configurações
-    systemctl restart bind9
-}
-
-# Função para configurar o Apache para um domínio
-configure_apache() {
-    local domain_name=$1
-
-    echo "Configurando Apache para o domínio $domain_name..."
-
-    # Criando o diretório de documentos para o domínio
-    mkdir -p /var/www/$domain_name
-    chown -R www-data:www-data /var/www/$domain_name
-
-    # Criando um arquivo de exemplo index.html
-    cat <<EOL > /var/www/$domain_name/index.html
-<html>
-    <head>
-        <title>Bem-vindo a $domain_name</title>
-    </head>
-    <body>
-        <h1>Sucesso! O domínio $domain_name está configurado.</h1>
-    </body>
-</html>
-EOL
-
-    # Criando configuração do site Apache
-    cat <<EOL > /etc/apache2/sites-available/$domain_name.conf
-<VirtualHost *:80>
-    ServerAdmin admin@$domain_name
-    ServerName $domain_name
-    ServerAlias www.$domain_name
-    DocumentRoot /var/www/$domain_name
-    ErrorLog \${APACHE_LOG_DIR}/$domain_name_error.log
-    CustomLog \${APACHE_LOG_DIR}/$domain_name_access.log combined
-
-    <Directory /var/www/$domain_name>
-        Options FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
-EOL
-
-    # Habilitar o site e reconfigurar o Apache
-    a2ensite $domain_name.conf
-    systemctl reload apache2
-}
-
-# Função para configurar SSL/TLS
-configure_ssl() {
-    local domain_name=$1
-
-    echo "Configurando SSL/TLS para $domain_name..."
-
-    # Verifica se o domínio é público ou local para usar Certbot ou certificado autoassinado
-    if [[ "$domain_name" == *.* && "$domain_name" != *.local && "$domain_name" != *.localhost ]]; then
-        # Usar Certbot para domínios públicos
-        certbot --apache -d $domain_name -d www.$domain_name --non-interactive --agree-tos --email admin@$domain_name
+    # Reiniciando o BIND9 para aplicar as configurações
+    if ! systemctl restart bind9; then
+        echo -e "\e[31m[ERRO]\e[0m Erro ao reiniciar o BIND9. Verifique a configuração."
+        exit 1
     else
-        # Criar certificado SSL autoassinado para domínios locais
-        mkdir -p /etc/ssl/$domain_name
-
-        openssl req -new -x509 -days 365 -nodes -out /etc/ssl/$domain_name/ssl.crt -keyout /etc/ssl/$domain_name/ssl.key -subj "/C=US/ST=State/L=City/O=Organization/OU=Unit/CN=$domain_name"
-
-        cat <<EOL > /etc/apache2/sites-available/$domain_name-ssl.conf
-<VirtualHost *:443>
-    ServerAdmin admin@$domain_name
-    ServerName $domain_name
-    ServerAlias www.$domain_name
-    DocumentRoot /var/www/$domain_name
-    ErrorLog \${APACHE_LOG_DIR}/$domain_name_error.log
-    CustomLog \${APACHE_LOG_DIR}/$domain_name_access.log combined
-
-    SSLEngine on
-    SSLCertificateFile /etc/ssl/$domain_name/ssl.crt
-    SSLCertificateKeyFile /etc/ssl/$domain_name/ssl.key
-
-    <Directory /var/www/$domain_name>
-        Options FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-</VirtualHost>
-EOL
-
-        # Habilitar o módulo SSL e o site SSL
-        a2enmod ssl
-        a2ensite $domain_name-ssl.conf
-        systemctl reload apache2
+        echo -e "\e[32m[SUCESSO]\e[0m Domínio $domain_name configurado com sucesso."
     fi
 }
 
-# Função para configurar um domínio
-configure_domain() {
+# Função para listar domínios configurados
+list_domains() {
+    echo -e "\e[32m[INFO]\e[0m Domínios configurados:"
+    grep 'zone "' /etc/bind/named.conf.local | awk '{print $2}' | sed 's/"//g'
+}
+
+# Função para remover um domínio local
+remove_domain() {
     local domain_name
-    local domain_ip
 
-    read -p "Digite o nome do domínio: " domain_name
-    read -p "Digite o endereço IP do domínio: " domain_ip
+    list_domains
+    read -p "Digite o nome do domínio que deseja remover: " domain_name
 
-    echo "Escolha uma opção:"
-    echo "1. Configurar DNS e Apache"
-    echo "2. Apenas adicionar configuração ao BIND9"
-    echo "3. Apenas adicionar configuração ao Apache"
-    read -p "Escolha uma opção [1/2/3]: " option
+    # Removendo a configuração do domínio no named.conf.local
+    sed -i "/zone \"$domain_name\" {/,/};/d" /etc/bind/named.conf.local
 
-    case "$option" in
-        1)
-            configure_bind "$domain_name" "$domain_ip"
-            configure_apache "$domain_name"
-            configure_ssl "$domain_name"
-            ;;
-        2)
-            configure_bind "$domain_name" "$domain_ip"
-            ;;
-        3)
-            configure_apache "$domain_name"
-            configure_ssl "$domain_name"
-            ;;
-        *)
-            echo "Opção inválida."
-            ;;
-    esac
+    # Removendo o arquivo de zona
+    rm -f /etc/bind/zones/db.$domain_name
+
+    # Reiniciando o BIND9 para aplicar as alterações
+    if ! systemctl restart bind9; then
+        echo -e "\e[31m[ERRO]\e[0m Erro ao reiniciar o BIND9. Verifique a configuração."
+        exit 1
+    else
+        echo -e "\e[32m[SUCESSO]\e[0m Domínio $domain_name removido com sucesso."
+    fi
+}
+
+# Função para testar a configuração DNS
+test_dns_configuration() {
+    local domain_name
+
+    read -p "Digite o nome do domínio para testar (ex: exemplo.local): " domain_name
+
+    echo -e "\e[32m[INFO]\e[0m Testando resolução DNS para $domain_name..."
+
+    if host $domain_name 127.0.0.1 > /dev/null; then
+        echo -e "\e[32m[SUCESSO]\e[0m O domínio $domain_name está resolvendo corretamente na rede local."
+    else
+        echo -e "\e[31m[ERRO]\e[0m Falha na resolução DNS. Verifique a configuração."
+    fi
 }
 
 # Função para o menu principal
 main_menu() {
-    clear
-    echo "Menu Principal:"
-    echo "1. Instalar o Servidor DNS e Web"
-    echo "2. Adicionar um Domínio ao Servidor DNS"
-    echo "3. Sair"
+    while true; do
+        echo -e "\n\e[34mMenu Principal:\e[0m"
+        echo "1. Instalar e Configurar BIND9 (Nova Instalação)"
+        echo "2. Cadastrar Novo Domínio Local"
+        echo "3. Listar Domínios Configurados"
+        echo "4. Remover um Domínio"
+        echo "5. Testar Resolução DNS"
+        echo "6. Sair"
 
-    read -p "Escolha uma opção [1/2/3]: " choice
+        read -p "Escolha uma opção: " option
 
-    case "$choice" in
-        1)
-            check_root
-            check_os_compatibility
-            remove_previous_configurations
-            install_packages
-            get_server_ip
-            echo "Servidor DNS e Web configurados com sucesso!"
-            ;;
-        2)
-            configure_domain
-            ;;
-        3)
-            exit 0
-            ;;
-        *)
-            echo "Opção inválida. Saindo..."
-            exit 1
-            ;;
-    esac
+        case $option in
+            1)
+                clean_previous_config
+                install_packages
+                ;;
+            2)
+                configure_bind_local
+                ;;
+            3)
+                list_domains
+                ;;
+            4)
+                remove_domain
+                ;;
+            5)
+                test_dns_configuration
+                ;;
+            6)
+                echo -e "\e[32m[INFO]\e[0m Saindo..."
+                exit 0
+                ;;
+            *)
+                echo -e "\e[31m[ERRO]\e[0m Opção inválida. Tente novamente."
+                ;;
+        esac
+    done
 }
 
-# Executa o menu principal
+# Execução do script
+check_root
+check_os_compatibility
 main_menu
