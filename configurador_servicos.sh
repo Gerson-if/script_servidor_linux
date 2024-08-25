@@ -42,6 +42,11 @@ function setup_onlyoffice {
 # Função para executar o script de integração do ONLYOFFICE com Nextcloud
 function run_onlyoffice_integration_script {
     echo "Certifique-se de que o Nextcloud está funcionando e que você fez login pelo menos uma vez antes de executar este script."
+
+    echo "Entrando no diretório do ONLYOFFICE..."
+
+    cd docker-onlyoffice-nextcloud/ || error_exit "Falha ao entrar no diretório do repositório do ONLYOFFICE."
+
     echo "Configurando ONLYOFFICE Online..."
     if [ -f "set_configuration.sh" ]; then
         bash set_configuration.sh || error_exit "Falha na configuração do ONLYOFFICE."

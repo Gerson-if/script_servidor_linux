@@ -36,3 +36,15 @@
 
 ## Conclusão:
 O MariaDB agora está configurado e acessível para uso local e remoto na sua LAN. Caso precise de mais personalizações, basta ajustar o `Dockerfile` ou o `my.cnf`.
+##conexões com banco de dados de outra maquina 
+onde pede enderço de host use o endereco ip sem a porta somente o endereco ip 
+
+## instalação Adminer 
+
+       docker run -d --name adminer -p 8080:8080 adminer:latest
+
+Após iniciar o contêiner, você pode acessar o Adminer no navegador com o seguinte endereço:
+
+http://localhost:8080 subistura localhost pelo seu ip
+
+ 
