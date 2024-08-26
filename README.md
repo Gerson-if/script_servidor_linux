@@ -27,14 +27,16 @@ Este projeto oferece um sistema automatizado para a configuração de um ambient
 3. **Descompacte o pacote** Extraia o conteúdo do arquivo .zip com o comando:
 
     unzip script_servidor_linux-main.zip
+    ou 
+    unzip main.zip
 
 4. **Dê permissões ao script:** Navegue até o diretório extraído e torne o script menu.sh executável com permissões recursivas usando o comando:
 
     chmod 777 -R script_servidor_linux-main
 
 5. **Execute o script:** Com permissões de superusuário, execute o script com o comando:
-
-    sudo ./script_servidor_linux-main/menu.sh
+    cd script_servidor_linux-main
+    sudo ./menu.sh
     
 6. **Siga as instruções:** Siga as orientações apresentadas no menu interativo para completar a instalação e configuração.
 
